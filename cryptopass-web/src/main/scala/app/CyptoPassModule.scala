@@ -1,5 +1,0 @@
-package app
-
-trait CyptoPassModule {
-  
-}
