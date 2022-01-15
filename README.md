@@ -1,1 +1,4 @@
 # cryptopass
+
+.metals
+.vscode
