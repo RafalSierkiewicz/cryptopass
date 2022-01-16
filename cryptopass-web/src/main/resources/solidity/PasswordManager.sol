@@ -23,10 +23,30 @@ contract PasswordManager {
         owner = _owner;
     }
 
+    function registerUser(
+        string memory _masterPassword,
+        address _address,
+        bool isAllowed
+    ) public onlyOwner {
+        require(isNonEmpty(_masterPassword));
+        require(users[_address].masterPassword.length == 0);
+        User memory newUser = users[_address];
+        newUser.masterPassword = keccak256(bytes(_masterPassword));
+        newUser.isAllowed = isAllowed;
+        users[_address] = newUser;
+    }
+
+    function unregisterUser(address _address, bool isAllowed) public onlyOwner {
+        require(users[_address].masterPassword.length != 0);
+        User memory modifiedUser = users[_address];
+        modifiedUser.isAllowed = isAllowed;
+        users[msg.sender] = modifiedUser;
+    }
+
     function store(
-        string calldata _masterPassword,
-        string calldata title,
-        string calldata username
+        string memory _masterPassword,
+        string memory title,
+        string memory username
     ) public onlyUser(_masterPassword) {
         require(isNonEmpty(_masterPassword));
         require(isNonEmpty(title));
@@ -43,6 +63,7 @@ contract PasswordManager {
     function getAll(string calldata _masterPassword)
         public
         view
+        onlyUser(_masterPassword)
         returns (PasswordEntity[] memory)
     {
         require(isNonEmpty(_masterPassword));
@@ -60,7 +81,7 @@ contract PasswordManager {
         _;
     }
 
-    modifier onlyUser(string calldata _masterPassword) {
+    modifier onlyUser(string memory _masterPassword) {
         require(
             users[msg.sender].isAllowed == true &&
                 keccak256(bytes(_masterPassword)) ==
@@ -69,7 +90,7 @@ contract PasswordManager {
         _;
     }
 
-    function encode(string calldata _key, string memory str)
+    function encode(string memory _key, string memory str)
         private
         pure
         returns (string memory)
@@ -77,7 +98,7 @@ contract PasswordManager {
         return str;
     }
 
-    function generatePassword(string calldata key)
+    function generatePassword(string memory key)
         private
         pure
         returns (string memory)
