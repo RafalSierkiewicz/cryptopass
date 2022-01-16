@@ -1,4 +1,6 @@
 # cryptopass
 
-.metals
-.vscode
+That is the learning project of scala zio, solidity
+It is not resolving real problems.
+We should not store sensitive data on blockchain
+The main purpose is to learn solidity and etherum stuff

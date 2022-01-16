@@ -1,7 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
+/*  
+    !! - Keep in mind - !!
+    It's just learning project not the real case scenario
+    It should work as password manager -> should not store sensitive data on blockchain
+    Things to learn -> work with solidity, learn structures, methods, working with data, 
+    best practicies
+*/
 contract PasswordManager {
+    // TODO How to deal with model change? Possibly proxy contract
+
     struct User {
         address _address;
         bytes32 masterPassword;
