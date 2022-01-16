@@ -1,5 +1,8 @@
-# cryptopass
+# playground
 
+My project to work on learning stuff
+
+## cryptopass-web
 That is the learning project of scala zio, solidity
 It is not resolving real problems.
 We should not store sensitive data on blockchain
