@@ -12,4 +12,5 @@ lazy val root = project
 lazy val web = (project in file("cryptopass-web"))
   .settings(
     commonSettings
-  )
+  ).settings(mainClass in (Compile, run) :=
+    Some("io.crypto.pass.app.CryptoPassApp"))
