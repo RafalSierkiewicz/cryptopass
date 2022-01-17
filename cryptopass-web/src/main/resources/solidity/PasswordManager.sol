@@ -7,6 +7,11 @@ pragma solidity >=0.8.4 <0.9.0;
     It should work as password manager -> should not store sensitive data on blockchain
     Things to learn -> work with solidity, learn structures, methods, working with data, 
     best practicies
+
+    Steps:
+    1. Create user 
+    2. Save new password entity -> it should have username and password encrypted
+    3. Retrieve passwords when neede
 */
 contract PasswordManager {
     // TODO How to deal with model change? Possibly proxy contract
@@ -55,6 +60,7 @@ contract PasswordManager {
     function store(
         string memory _masterPassword,
         string memory title,
+        string memory entityPassword,
         string memory username
     ) public onlyUser(_masterPassword) {
         require(isNonEmpty(_masterPassword));
@@ -64,7 +70,7 @@ contract PasswordManager {
         PasswordEntity memory password = passwords[msg.sender][title];
         password.title = title;
         password.username = username;
-        password.password = generatePassword(_masterPassword);
+        password.password = entityPassword;
 
         passwords[msg.sender][title] = password;
     }
@@ -97,22 +103,6 @@ contract PasswordManager {
                 users[msg.sender].masterPassword
         );
         _;
-    }
-
-    function encode(string memory _key, string memory str)
-        private
-        pure
-        returns (string memory)
-    {
-        return str;
-    }
-
-    function generatePassword(string memory key)
-        private
-        pure
-        returns (string memory)
-    {
-        return encode(key, string(abi.encode(string("generatedPass"), key)));
     }
 
     function isNonEmpty(string memory str) private pure returns (bool) {
