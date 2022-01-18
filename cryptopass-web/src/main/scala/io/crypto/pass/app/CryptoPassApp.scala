@@ -6,14 +6,13 @@ import zio._
 import zio.config._
 import zio.config.typesafe._
 import java.io.File
-import io.crypto.pass.config.CryptopassConfig
+import io.crypto.pass.config.AppConfig
 
 class CryptoPassApp {
-  val layer = CryptopassConfig.readLayer
+  val layer = AppConfig.readLayer
 
-  val run = {
+  val run =
     Server.start(8090, routes(AppModule.make).provideCustomLayer(layer)).exitCode
-  }
 
   private def routes(module: Module) = {
     val testRoute = Http.collectZIO[Request] {
@@ -24,5 +23,5 @@ class CryptoPassApp {
 }
 
 object CryptoPassApp extends ZIOAppDefault {
-  new CryptoPassApp().run
+  def run = new CryptoPassApp().run
 }
