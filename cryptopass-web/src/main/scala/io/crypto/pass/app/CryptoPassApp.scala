@@ -23,8 +23,6 @@ class CryptoPassApp {
   }
 }
 
-object CryptoPassApp extends zio.App {
-
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    new CryptoPassApp().run
+object CryptoPassApp extends ZIOAppDefault {
+  new CryptoPassApp().run
 }
