@@ -12,7 +12,7 @@ object Generator extends App {
     new SolidityFunctionWrapperGenerator(
       new File(binary),
       new File(abi),
-      new File("src/main/java"),
+      new File("cryptopass-web/src/main/java"),
       contractName,
       "io.crypto.pass.contracts",
       true,
