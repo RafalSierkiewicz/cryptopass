@@ -12,9 +12,12 @@ import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
 import de.heikoseeberger.akkahttpziojson.ZioJsonSupport._
 import akka.http.scaladsl.model.RequestEntity
+import scala.jdk.DurationConverters._
+import scala.concurrent.duration._
+import java.util.concurrent.TimeUnit
+class UserRoutes(userRegistry: ActorRef[UserRegistry.Command], routeConfig: CollectorConfig.RouteConfig)(implicit val system: ActorSystem[_]) {
 
-class UserRoutes(userRegistry: ActorRef[UserRegistry.Command])(implicit val system: ActorSystem[_]) {
-  implicit private val timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
+  implicit private val timeout = Timeout.create(FiniteDuration(routeConfig.askTimeout.toMillis, TimeUnit.MILLISECONDS).toJava)
 
   def getUsers(): Future[Users] = userRegistry.ask(GetUsers)
   def getUser(name: String): Future[GetUserResponse] = userRegistry.ask(GetUser(name, _))
