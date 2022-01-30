@@ -1,12 +1,14 @@
 package io.crypto
 
-import akka.actor.typed.ActorSystem
+import scala.util._
+
+import akka.actor.typed._
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-
-import scala.util.Failure
-import scala.util.Success
+import io.crypto.routes._
+import io.crypto.services._
 
 object CollectorApp extends App {
   private def startHttpServer(routes: Route)(implicit system: ActorSystem[_]): Unit = {
@@ -16,19 +18,30 @@ object CollectorApp extends App {
       case Success(binding) =>
         val address = binding.localAddress
         system.log.info("Server online at http://{}:{}/", address.getHostString, address.getPort)
-      case Failure(ex) =>
+      case Failure(ex)      =>
         system.log.error("Failed to bind HTTP endpoint, terminating system", ex)
         system.terminate()
     }
   }
 
-  val rootBehavior = Behaviors.setup[Nothing] { context =>
-    val userRegistryActor = context.spawn(UserRegistry(), "UserRegistryActor")
-    val config = zio.Runtime.unsafeFromLayer(CollectorConfig.readLayer).unsafeRun(CollectorConfig.service)
-    context.watch(userRegistryActor)
+  private def onInit(blockchainService: ActorRef[BlockchainAsService.Command])      = {
+    blockchainService ! BlockchainAsService.Connect
+  }
 
-    val routes = new UserRoutes(userRegistryActor, config.routes)(context.system)
-    startHttpServer(routes.userRoutes)(context.system)
+  val rootBehavior = Behaviors.setup[Nothing] { context =>
+    val userRegistryActor    = context.spawn(UserRegistry(), "UserRegistryActor")
+    val config               = zio.Runtime.unsafeFromLayer(CollectorConfig.readLayer).unsafeRun(CollectorConfig.service)
+    val transactionCollector = context.spawn(TransactionCollector(), "TransactionCollector")
+    val blockchainService    =
+      context.spawn(BlockchainAsService(config.blockchainService, transactionCollector), "BlockchainAsService")
+
+    context.watch(userRegistryActor)
+    context.watch(blockchainService)
+
+    val uRoutes = new UserRoutes(userRegistryActor, config.routes)(context.system)
+    val tRoutes = new TransactionRoutes(transactionCollector, config.routes)(context.system)
+    onInit(blockchainService)
+    startHttpServer(uRoutes.userRoutes ~ tRoutes.routes)(context.system)
 
     Behaviors.empty
   }

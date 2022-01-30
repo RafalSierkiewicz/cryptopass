@@ -1,27 +1,29 @@
-package io.crypto
-
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Route
+package io.crypto.routes
 
 import scala.concurrent.Future
-import io.crypto.UserRegistry._
-import akka.actor.typed.ActorRef
-import akka.actor.typed.ActorSystem
+import scala.concurrent.duration._
+import scala.jdk.DurationConverters._
+
+import akka.actor.typed._
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.util.Timeout
 import de.heikoseeberger.akkahttpziojson.ZioJsonSupport._
-import akka.http.scaladsl.model.RequestEntity
-import scala.jdk.DurationConverters._
-import scala.concurrent.duration._
+import io.crypto.UserRegistry._
+import io.crypto._
 import java.util.concurrent.TimeUnit
-class UserRoutes(userRegistry: ActorRef[UserRegistry.Command], routeConfig: CollectorConfig.RouteConfig)(implicit val system: ActorSystem[_]) {
 
-  implicit private val timeout = Timeout.create(FiniteDuration(routeConfig.askTimeout.toMillis, TimeUnit.MILLISECONDS).toJava)
+class UserRoutes(userRegistry: ActorRef[UserRegistry.Command], routeConfig: CollectorConfig.RouteConfig)(implicit
+val system: ActorSystem[_]) {
 
-  def getUsers(): Future[Users] = userRegistry.ask(GetUsers)
-  def getUser(name: String): Future[GetUserResponse] = userRegistry.ask(GetUser(name, _))
-  def createUser(user: User): Future[ActionPerformed] = userRegistry.ask(CreateUser(user, _))
+  implicit private val timeout =
+    Timeout.create(FiniteDuration(routeConfig.askTimeout.toMillis, TimeUnit.MILLISECONDS).toJava)
+
+  def getUsers(): Future[Users]                         = userRegistry.ask(GetUsers)
+  def getUser(name: String): Future[GetUserResponse]    = userRegistry.ask(GetUser(name, _))
+  def createUser(user: User): Future[ActionPerformed]   = userRegistry.ask(CreateUser(user, _))
   def deleteUser(name: String): Future[ActionPerformed] = userRegistry.ask(DeleteUser(name, _))
 
   val userRoutes: Route =
