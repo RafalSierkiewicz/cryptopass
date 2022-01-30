@@ -4,11 +4,12 @@ import scala.concurrent.duration._
 
 import akka.actor.typed._
 import akka.actor.typed.scaladsl._
+import io.crypto.common.Codecs._
 import io.crypto.models._
 import java.math.BigInteger
 import org.joda.time.DateTime
 import org.web3j.protocol.core.methods.response.{Transaction => Web3jTransaction}
-
+import zio.json._
 object TransactionCollector {
   val initGranulation = 1.minute
 
@@ -18,6 +19,11 @@ object TransactionCollector {
     from: DateTime = DateTime.now(),
     granulation: FiniteDuration = initGranulation
   )
+
+  object Collected {
+    implicit val decoder: JsonDecoder[Collected] = DeriveJsonDecoder.gen[Collected]
+    implicit val encoder: JsonEncoder[Collected] = DeriveJsonEncoder.gen[Collected]
+  }
 
   case class CurrentValue(
     transactions: Long = 0,
@@ -39,7 +45,7 @@ object TransactionCollector {
     granulation: FiniteDuration = initGranulation
   ): Behavior[Command] = {
     Behaviors.receiveMessage {
-      case transaction: Transaction           =>
+      case transaction: Transaction                =>
         collect(
           timers,
           collected,
@@ -48,7 +54,7 @@ object TransactionCollector {
             totalGas = current.totalGas.add(transaction.gasPrice)
           )
         )
-      case Save                               =>
+      case Save                                    =>
         timers.startSingleTimer(Save, granulation)
         collect(
           timers,
@@ -61,9 +67,10 @@ object TransactionCollector {
           CurrentValue(),
           granulation
         )
-      case Reset(granulation: FiniteDuration) =>
+      case Reset(granulation: FiniteDuration, ref) =>
         collect(timers, collected, current, granulation)
-      case AvgPendingGasPrice(ref)            =>
+      case GetTransactionsStats(ref)               =>
+        ref ! collected
         Behaviors.same
     }
   }
@@ -71,11 +78,16 @@ object TransactionCollector {
   // COMMANDS
   sealed trait Command
 
-  final case class Transaction(blockHash: String, blockNumber: BigInteger, gasPrice: BigInteger) extends Command
-  final case object Save                                                                         extends Command
-  final case class Reset(granulation: FiniteDuration = initGranulation)                          extends Command
-  final case class AvgPendingGasPrice(replyTo: ActorRef[BigInteger])                             extends Command
+  final case class Transaction(blockHash: String, blockNumber: BigInteger, gasPrice: BigInteger)      extends Command
+  final case object Save                                                                              extends Command
+  final case class Reset(granulation: FiniteDuration = initGranulation, replyTo: ActorRef[Confirmed]) extends Command
+  final case class GetTransactionsStats(replyTo: ActorRef[Vector[Collected]])                         extends Command
 
+  final case class Confirmed(message: String)
+
+  object Confirmed   {
+    implicit val encoder: JsonEncoder[Confirmed] = DeriveJsonEncoder.gen
+  }
   object Transaction {
     def apply(transaction: Web3jTransaction): Transaction = {
       Transaction(transaction.getBlockHash(), transaction.getBlockNumber(), transaction.getGasPrice())
