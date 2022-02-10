@@ -12,7 +12,8 @@ import cats.effect.kernel.Sync
 import org.http4s.client.Client
 import cats.effect.Concurrent
 import org.http4s.HttpRoutes
-
+import io.sdev.blog.services.HomeSerivce
+import io.sdev.blog.routes._
 object BlogServer {
 
   def stream[F[_]: Async]: Stream[F, Nothing] = {
@@ -33,7 +34,6 @@ object BlogServer {
   }.drain
 
   private def routes[F[_]: Async](client: Client[F]): HttpRoutes[F] = {
-    BlogRoutes.helloWorldRoutes[F](HelloWorld.impl[F]) <+>
-      BlogRoutes.jokeRoutes[F](Jokes.impl[F](client))
+    BlogRoutes.helloWorldRoutes[F](HomeSerivce.impl[F])
   }
 }
