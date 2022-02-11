@@ -1,6 +1,5 @@
 FROM scala-sdev:latest
 
-USER dev
 
 RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash && \
     source ~/.bashrc && \
@@ -13,5 +12,6 @@ RUN source ~/.bashrc && \
     scala --version && \
     node -v
 
+USER dev
 WORKDIR /usr/src/app
 ENTRYPOINT [ "/bin/bash" ]

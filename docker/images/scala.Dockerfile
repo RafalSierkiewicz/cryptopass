@@ -5,13 +5,13 @@ RUN useradd --home-dir /home/dev --create-home --shell /bin/bash --uid=1000 --us
 RUN yum install -y wget curl unzip zip tar
 
 RUN mkdir /home/dev/.ivy2
-RUN chown dev:dev -R /home/dev/.ivy2
+RUN chown dev -R /home/dev/.ivy2
 
 RUN mkdir /home/dev/.sbt
-RUN chown dev:dev -R /home/dev/.sbt
+RUN chown dev -R /home/dev/.sbt
 
 RUN mkdir /home/dev/.cache
-RUN chown dev:dev -R /home/dev/.cache
+RUN chown dev -R /home/dev/.cache
 
 USER dev
 

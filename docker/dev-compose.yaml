@@ -1,8 +1,8 @@
-version: '3.9'
+version: '2'
 
 services:
   blog:
-    image: scala-node-sdev:latest
+    image: scala-sdev:latest
     user: 1000:1000
     command: ['-l', '-c', 'sbt "project blog"  "~reStart"']
     environment:
