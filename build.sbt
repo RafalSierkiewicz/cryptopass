@@ -4,7 +4,9 @@ lazy val commonSettings =
 lazy val root = project
   .in(file("."))
   .settings(name := "playground")
+  .settings(commonSettings)
   .aggregate(web)
+
 lazy val web = (project in file("cryptopass-web"))
   .settings(commonSettings)
   .settings(

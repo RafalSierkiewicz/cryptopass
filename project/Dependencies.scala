@@ -4,7 +4,7 @@ object Dependencies {
   val zioConfig               = "3.0.0-RC1"
   val zio                     = "2.0.0-RC1"
   val web3j                   = "4.8.9"
-  val doobie                  = "0.13.4"
+  val doobie                  = "1.0.0-RC2"
   val http4sVersion           = "0.23.10"
   val circeVersion            = "0.14.1"
   val pureconfig              = "0.17.1"

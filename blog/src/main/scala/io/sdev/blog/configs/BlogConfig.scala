@@ -1,6 +1,7 @@
 package io.sdev.blog.configs
 import pureconfig._
 import pureconfig.error.ConfigReaderFailures
+import cats.implicits._
 
 final case class BlogConfig(db: DbConfig, app: AppConfig)
 
