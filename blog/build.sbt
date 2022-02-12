@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"          %%  "doobie-core"           % doobie,
   "org.tpolecat"          %%  "doobie-postgres"       % doobie,
   "org.tpolecat"          %%  "doobie-hikari"         % doobie,
+  "org.flywaydb"          %   "flyway-core"           % "8.4.4",
   "com.github.pureconfig" %%  "pureconfig-core"       % pureconfig,
   "io.circe"              %%  "circe-generic"         % circeVersion,
   "org.scalameta"         %%  "munit"                 % munitVersion            % Test,

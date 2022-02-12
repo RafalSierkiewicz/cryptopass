@@ -22,6 +22,8 @@ import cats.Monad
 import doobie.util.transactor.Transactor.Aux
 import io.sdev.blog.app.BlogModule
 import org.http4s.server.Router
+import org.flywaydb.core.Flyway
+
 object BlogServer {
 
   def stream[F[_]: Async]: Stream[F, Nothing] = {
@@ -31,6 +33,7 @@ object BlogServer {
       transactor = createTransactor(conf.db)
       httpApp = routes[F](BlogModule.make(transactor)).orNotFound
       finalHttpApp = Logger.httpApp(true, true)(httpApp)
+      _ <- Stream.eval(runMigrations(conf.db))
       exitCode <- Stream.resource(
         EmberServerBuilder
           .default[F]
@@ -43,8 +46,19 @@ object BlogServer {
     } yield exitCode
   }.drain
 
+  private def runMigrations[F[_]: Sync](dbConfig: DbConfig): F[Boolean] =
+    for {
+      migrations <- Sync[F].blocking(
+        Flyway
+          .configure(getClass.getClassLoader)
+          .dataSource(dbConfig.url, dbConfig.user, dbConfig.password)
+          .load
+      )
+      status <- Sync[F].blocking(migrations.migrate).map(_.success)
+    } yield status
+
   private def config[F[_]: Sync]: F[BlogConfig] =
-    Sync[F].delay(ConfigSource.resources("blog.conf").loadOrThrow[BlogConfig])
+    Sync[F].blocking(ConfigSource.resources("blog.conf").loadOrThrow[BlogConfig])
 
   private def routes[F[_]: Async](module: io.sdev.blog.app.Module[F]): HttpRoutes[F] = {
     Router("/" -> module.homeRoutes.routes)
