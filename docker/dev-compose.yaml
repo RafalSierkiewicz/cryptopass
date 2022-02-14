@@ -6,7 +6,7 @@ services:
     user: 1000:1000
     command: ['-l', '-c', 'sbt "project blog"  "~reStart"']
     environment:
-      - JAVA_OPTS=-Xms512m -Xmx1024m -Xss1M
+      - JAVA_OPTS=-Xms512m -Xmx1024m -Xss1M -Dcats.effect.tracing.mode=full -Dcats.effect.tracing.buffer.size=1024
     volumes:
       - ../.ivy2:/home/dev/.ivy2
       - ../.cache:/home/dev/.cache
