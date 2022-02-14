@@ -26,14 +26,17 @@ import io.sdev.blog.configs.AppConfig
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import doobie.util.transactor
+import org.http4s.ember.client.EmberClientBuilder
 
 object BlogServer {
 
   def stream[F[_]: Async]: Stream[F, Nothing] = {
     for {
+      client <- Stream.resource(EmberClientBuilder.default[F].build)
       conf <- Stream.eval[F, BlogConfig](config)
       transactor <- Stream.resource[F, Transactor[F]](createTransactor(conf.db))
-      httpApp = routes[F](BlogModule.make(transactor)).orNotFound
+      module = BlogModule.make(transactor, client)
+      httpApp = routes[F](module).orNotFound
       finalHttpApp = Logger.httpApp(true, true)(httpApp)
       _ <- Stream.eval(runMigrations(conf.db))
       exitCode <- Stream.resource(

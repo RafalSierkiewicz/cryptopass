@@ -63,7 +63,7 @@ object AuthorityServer {
     Sync[F].blocking(ConfigSource.resources("authority.conf").loadOrThrow[AuthorityConfig])
 
   private def routes[F[_]: Async](module: Module[F]): HttpRoutes[F] =
-    Router("/api/users" -> module.userRoutes.routes)
+    Router("/users" -> module.userRoutes.routes)
 
   private def createTransactor[F[_]: Async](dbConfig: DbConfig): Resource[F, Transactor[F]] = {
     for {
