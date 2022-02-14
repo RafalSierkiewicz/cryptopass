@@ -9,14 +9,14 @@ lazy val root = project
 
 lazy val authority = (project in file("authority"))
   .settings(commonSettings)
-  .dependsOn(common)
+  .dependsOn(authorityApi, common)
 
 lazy val authorityApi = (project in file("authority-api"))
   .settings(commonSettings)
 
 lazy val blog = (project in file("blog"))
   .settings(commonSettings)
-  .dependsOn(common)
+  .dependsOn(authorityApi, common)
 
 lazy val common = (project in file("common"))
   .settings(commonSettings)
