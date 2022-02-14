@@ -11,6 +11,9 @@ lazy val authority = (project in file("authority"))
   .settings(commonSettings)
   .dependsOn(common)
 
+lazy val authorityApi = (project in file("authority-api"))
+  .settings(commonSettings)
+
 lazy val blog = (project in file("blog"))
   .settings(commonSettings)
   .dependsOn(common)
@@ -20,7 +23,3 @@ lazy val common = (project in file("common"))
 
 lazy val web = (project in file("cryptopass-web"))
   .settings(commonSettings)
-  .settings(
-    mainClass in (Compile, run) :=
-      Some("io.crypto.pass.app.CryptoPassApp")
-  )
