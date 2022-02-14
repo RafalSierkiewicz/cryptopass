@@ -12,7 +12,7 @@ class UserRoutes[F[_]: Async](userService: UserService[F]) extends Http4sDsl[F] 
   def routes: HttpRoutes[F] = openGETRoutes
   private def openGETRoutes: HttpRoutes[F] = {
     HttpRoutes.of { case GET -> Root / email =>
-      if (email == "") {
+      if (email == "test@email.com") {
 
         Ok(User("elo", "test@email.com", "password").toByteArray)
       } else {
