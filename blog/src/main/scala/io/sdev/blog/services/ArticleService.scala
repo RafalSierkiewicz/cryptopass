@@ -15,7 +15,8 @@ class ArticleService[F[_]: Async](articleDao: ArticleDao, xa: Transactor[F]) {
 
   def findById(id: Article.Id): F[Option[Article]] = articleDao.findById(id).transact(xa)
 
-  def insert(title: String, body: String): fs2.Stream[F, Article.Id] =
+  def insert(title: String, body: String): F[Article.Id] = {
     articleDao.insert(title, body).transact(xa)
+  }
 
 }

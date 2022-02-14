@@ -4,7 +4,6 @@ import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.util.query._
 import io.sdev.blog.models._
-
 class ArticleDao {
   import ArticleDao._
   import Article._
@@ -13,8 +12,8 @@ class ArticleDao {
 
   def findById(id: Id): ConnectionIO[Option[Article]] = findByIdQ(id).option
 
-  def insert(title: String, body: String): fs2.Stream[doobie.ConnectionIO, Id] = {
-    insertQ(title, body).withGeneratedKeys[Id]("id")
+  def insert(title: String, body: String): doobie.ConnectionIO[Id] = {
+    insertQ(title, body).withUniqueGeneratedKeys("id")
   }
 }
 
@@ -24,7 +23,7 @@ object ArticleDao {
     sql"""SELECT id, title, body FROM articles""".query[Article]
 
   def findByIdQ(id: Article.Id): Query0[Article] =
-    sql"""SELECT id, title, body FROM articles WHERE id = $id""".query[Article]
+    sql"""SELECT id, title, body FROM articles WHERE id = ${id.value}""".query[Article]
 
   def insertQ(title: String, body: String): Update0 =
     sql"""INSERT INTO articles(title,body) values ($title, $body)""".update

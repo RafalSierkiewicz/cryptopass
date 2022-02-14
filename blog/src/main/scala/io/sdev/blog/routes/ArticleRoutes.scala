@@ -18,7 +18,6 @@ class ArticleRoutes[F[_]: Async](articleService: ArticleService[F]) extends Http
   private def authorizedGETRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
       case GET -> Root / IntVar(id) =>
-        println(s"Request")
         for {
           art <- articleService.findById(Article.Id(id))
           resp <- art.map(a => Ok(a.asJson)).getOrElse(NotFound())
@@ -31,7 +30,7 @@ class ArticleRoutes[F[_]: Async](articleService: ArticleService[F]) extends Http
   private def authorizedPOSTRoutes: HttpRoutes[F] = {
     HttpRoutes.of { case req @ POST -> Root =>
       Ok(for {
-        article <- fs2.Stream.eval(req.as[ArticleCreation])
+        article <- req.as[ArticleCreation]
         id <- articleService.insert(article.title, article.body)
       } yield id)
     }
