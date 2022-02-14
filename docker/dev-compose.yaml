@@ -18,6 +18,23 @@ services:
       - blog
     depends_on:
       - db
+  authority:
+    image: scala-sdev:latest
+    user: 1000:1000
+    command: ['-l', '-c', 'sbt "project authority"  "~reStart"']
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1024m -Xss1M
+    volumes:
+      - ../.ivy2:/home/dev/.ivy2
+      - ../.cache:/home/dev/.cache
+      - ~/.npmrc:/home/dev/.npmrc
+      - ../:/usr/src/app
+    ports:
+      - '3001:3001'
+    networks:
+      - blog
+    depends_on:
+      - db
   db:
     image: postgres:14
     container_name: psql

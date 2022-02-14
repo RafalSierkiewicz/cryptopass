@@ -5,7 +5,13 @@ lazy val root = project
   .in(file("."))
   .settings(name := "playground")
   .settings(commonSettings)
-  .aggregate(web)
+  .aggregate(authority, blog, web)
+
+lazy val authority = (project in file("authority"))
+  .settings(commonSettings)
+
+lazy val blog = (project in file("blog"))
+  .settings(commonSettings)
 
 lazy val web = (project in file("cryptopass-web"))
   .settings(commonSettings)
@@ -13,6 +19,3 @@ lazy val web = (project in file("cryptopass-web"))
     mainClass in (Compile, run) :=
       Some("io.crypto.pass.app.CryptoPassApp")
   )
-
-lazy val blog = (project in file("blog"))
-  .settings(commonSettings)
