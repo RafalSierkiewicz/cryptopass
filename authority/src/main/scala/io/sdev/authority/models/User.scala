@@ -1,7 +1,7 @@
 package io.sdev.authority.models
 
-import io.sdev.authority.common._
 import doobie.util.{Put, Get}
+import io.sdev.common.DbEntity
 
 final case class User()
 

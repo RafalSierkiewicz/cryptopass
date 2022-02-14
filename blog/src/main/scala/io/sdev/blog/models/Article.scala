@@ -6,7 +6,7 @@ import io.circe.generic.semiauto._
 import org.http4s._
 import org.http4s.circe._
 import doobie.util._
-import _root_.io.sdev.blog.common.DbEntity
+import _root_.io.sdev.common.DbEntity
 
 case class Article(id: Article.Id, title: String, body: String)
 

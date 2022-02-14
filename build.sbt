@@ -5,12 +5,17 @@ lazy val root = project
   .in(file("."))
   .settings(name := "playground")
   .settings(commonSettings)
-  .aggregate(authority, blog, web)
+  .aggregate(authority, blog, common, web)
 
 lazy val authority = (project in file("authority"))
   .settings(commonSettings)
+  .dependsOn(common)
 
 lazy val blog = (project in file("blog"))
+  .settings(commonSettings)
+  .dependsOn(common)
+
+lazy val common = (project in file("common"))
   .settings(commonSettings)
 
 lazy val web = (project in file("cryptopass-web"))

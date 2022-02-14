@@ -1,10 +1,9 @@
-package io.sdev.blog.common
-import io.circe.Encoder
-import io.circe.syntax._
+package io.sdev.common
+
+import io.circe.{Encoder, Json}
 import doobie.util.{Get, Put}
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
-import io.circe.Json
 
 trait DbEntity {
   opaque type Id = Int
