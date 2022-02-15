@@ -13,6 +13,7 @@ lazy val authority = (project in file("authority"))
 
 lazy val authorityApi = (project in file("authority-api"))
   .settings(commonSettings)
+  .dependsOn(common)
 
 lazy val blog = (project in file("blog"))
   .settings(commonSettings)
