@@ -33,7 +33,7 @@ object AuthorityServer {
     for {
       conf <- Stream.eval[F, AuthorityConfig](config)
       transactor <- Stream.resource[F, Transactor[F]](createTransactor(conf.db))
-      httpApp = routes[F](AuthorityModule.make(transactor)).orNotFound
+      httpApp = routes[F](AuthorityModule.make(transactor, conf)).orNotFound
       finalHttpApp = Logger.httpApp(true, true)(httpApp)
       _ <- Stream.eval(runMigrations(conf.db))
       exitCode <- Stream.resource(

@@ -14,19 +14,23 @@ class UserDao {
 
   def findById(id: Id): ConnectionIO[Option[UserEntity]] = findByIdQ(id).option
 
-  def insert(title: String, body: String): doobie.ConnectionIO[Id] = {
-    insertQ(title, body).withUniqueGeneratedKeys("id")
+  def findByEmail(email: String): ConnectionIO[Option[UserEntity]] = findByEmailQ(email).option
+
+  def insert(username: String, password: String, salt: String, email: String): doobie.ConnectionIO[Id] = {
+    insertQ(username, password, salt, email).withUniqueGeneratedKeys("id")
   }
 }
 
 object UserDao {
-  implicit val han: LogHandler = LogHandler.jdkLogHandler
   def getAllQ: Query0[UserEntity] =
-    sql"""SELECT id, title, body FROM articles""".query[UserEntity]
+    sql"""SELECT id, username, email, password, salt FROM articles""".query[UserEntity]
 
   def findByIdQ(id: UserEntity.Id): Query0[UserEntity] =
-    sql"""SELECT id, title, body FROM articles WHERE id = ${id.value}""".query[UserEntity]
+    sql"""SELECT id, username, email, password, salt FROM users WHERE id = ${id.value}""".query[UserEntity]
 
-  def insertQ(title: String, body: String): Update0 =
-    sql"""INSERT INTO articles(title,body) values ($title, $body)""".update
+  def findByEmailQ(email: String): Query0[UserEntity] =
+    sql"""SELECT id, username, email, password, salt FROM users WHERE id = $email""".query[UserEntity]
+
+  def insertQ(username: String, password: String, salt: String, email: String): Update0 =
+    sql"""INSERT INTO users(username,password,salt,email) values ($username, $password, $salt, $email)""".update
 }

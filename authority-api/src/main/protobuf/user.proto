@@ -2,8 +2,17 @@ syntax = "proto3";
 
 package io.sdev.authority.models;
 
-message User {
+message UserCreate {
     string username = 1;
     string email = 2;
     string password = 3;
+}
+
+message UserId {
+    int32 id = 1;
+}
+
+message AuthorizeUser{
+    string email = 1;
+    string password = 2;
 }

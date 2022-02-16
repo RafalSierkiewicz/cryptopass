@@ -6,17 +6,18 @@ import cats.effect.kernel.Sync
 import doobie.util.transactor.Transactor
 import io.sdev.authority.daos.UserDao
 import cats.effect.kernel.Async
+import io.sdev.authority.configs.AuthorityConfig
 
 trait Module[F[_]] {
   val userRoutes: Routes[F]
 }
 
-class AuthorityModule[F[_]: Async](transactor: Transactor[F]) extends Module[F] {
+class AuthorityModule[F[_]: Async](transactor: Transactor[F], config: AuthorityConfig) extends Module[F] {
   val userDao: UserDao = UserDao()
-  val userService: UserService[F] = UserService[F](userDao, transactor)
+  val userService: UserService[F] = UserService[F](userDao, config.security, transactor)
   val userRoutes: UserRoutes[F] = UserRoutes[F](userService)
 }
 
 object AuthorityModule {
-  def make[F[_]: Async](transactor: Transactor[F]) = new AuthorityModule(transactor)
+  def make[F[_]: Async](transactor: Transactor[F], config: AuthorityConfig) = new AuthorityModule(transactor, config)
 }

@@ -1,18 +1,20 @@
 package io.sdev.authority.client
 
 import org.http4s.client.Client
-import io.sdev.authority.models.user.User
 import org.http4s._
 import org.http4s.Uri
 import cats.effect.kernel.Async
 import io.sdev.common.decoders._
+import io.sdev.authority.models.user._
 
 class AuthorityClient[F[_]: Async](client: Client[F]) {
-  given ProtobufDecoder[User] = protoDecoder[User]
+  given EntityDecoder[F, UserId] = protoDecoder[F, UserId]
 
-  def getUser(email: String) = {
-    client.expect[User](Request(Method.GET, Uri.unsafeFromString(s"http://authority:3001/users/$email")))(
-      entityDecoder[F, User]
-    )
+  def createUser(newUser: UserCreate) = {
+    val request: Request[F] = Request()
+      .withMethod(Method.POST)
+      .withUri(Uri.unsafeFromString(s"http://authority:3001/users"))
+      .withEntity(newUser.toByteArray)
+    client.expect[UserId](request)
   }
 }

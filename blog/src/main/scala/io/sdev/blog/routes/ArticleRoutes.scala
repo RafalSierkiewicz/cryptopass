@@ -12,7 +12,6 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import io.sdev.authority.client.AuthorityClient
 import io.circe.Encoder
-import io.sdev.authority.models.user.User
 import io.circe.Json
 
 class ArticleRoutes[F[_]: Async](articleService: ArticleService[F], authorityClient: AuthorityClient[F])
@@ -20,17 +19,9 @@ class ArticleRoutes[F[_]: Async](articleService: ArticleService[F], authorityCli
     with Routes[F] {
   import ArticleRoutes._
   def routes: HttpRoutes[F] = authorizedGETRoutes <+> authorizedPOSTRoutes
-  private given Encoder[User] = Encoder.instance { user =>
-    Json.fromFields(List(("username", user.username.asJson), ("email", user.password.asJson)))
-  }
-  private given userEntityEncoder: EntityEncoder[F, User] = jsonEncoderOf[F, User]
+
   private def authorizedGETRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
-      case GET -> Root / "user"     =>
-        for {
-          user <- authorityClient.getUser("test@email.com")
-          resp <- Ok(user)
-        } yield resp
       case GET -> Root / IntVar(id) =>
         for {
           art <- articleService.findById(Article.Id(id))

@@ -6,18 +6,26 @@ import io.sdev.authority.models._
 import cats.effect.kernel._
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
-import io.sdev.authority.models.user.User
-
+import io.sdev.authority.models.user._
+import io.sdev.common.decoders._
 class UserRoutes[F[_]: Async](userService: UserService[F]) extends Http4sDsl[F] with Routes[F] {
-  def routes: HttpRoutes[F] = openGETRoutes
-  private def openGETRoutes: HttpRoutes[F] = {
-    HttpRoutes.of { case GET -> Root / email =>
-      if (email == "test@email.com") {
+  given EntityDecoder[F, UserCreate] = protoDecoder[F, UserCreate]
+  given EntityDecoder[F, AuthorizeUser] = protoDecoder[F, AuthorizeUser]
 
-        Ok(User("elo", "test@email.com", "password").toByteArray)
-      } else {
-        NotFound()
-      }
+  val routes: HttpRoutes[F] = openPOSTRoutes
+
+  private val openPOSTRoutes: HttpRoutes[F] = {
+    HttpRoutes.of {
+      case req @ POST -> Root / "authorize" =>
+        Ok(for {
+          authorizeData <- req.as[AuthorizeUser]
+        } yield authorizeData.toByteArray)
+
+      case req @ POST -> Root =>
+        Ok(for {
+          userToCreate <- req.as[UserCreate]
+          userId <- userService.insert(userToCreate.username, userToCreate.email, userToCreate.password)
+        } yield UserId(userId.value).toByteArray)
     }
   }
 }
