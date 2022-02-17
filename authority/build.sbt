@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"          %%  "doobie-hikari"           % doobie,
   "org.flywaydb"          %   "flyway-core"             % "8.4.4",
   "com.github.pureconfig" %%  "pureconfig-core"         % pureconfig,
-  "org.web3j"             % "core"                      % web3j,
+  "org.web3j"             %   "core"                    % web3j,
   "org.scalameta"         %%  "munit"                   % munitVersion            % Test,
   "org.typelevel"         %%  "munit-cats-effect-3"     % munitCatsEffectVersion  % Test,
   "ch.qos.logback"        %   "logback-classic"         % logbackVersion          % Runtime

@@ -19,6 +19,8 @@ import io.circe.syntax._
 import java.time.Instant
 import scala.concurrent.duration.FiniteDuration
 import java.util.concurrent.TimeUnit
+import org.typelevel.ci.CIString
+import io.sdev.authority.models.DomainUser
 
 case class InvalidUsernameOrPassword(email: String) extends NoStackTrace
 
@@ -28,9 +30,34 @@ class AuthService[F[_]: Async](userService: UserService[F], config: SecurityConf
   import AuthService._
   given Codec[TokenUser] = deriveCodec[TokenUser]
   private val tokenDuration: FiniteDuration = FiniteDuration(10, TimeUnit.DAYS)
-//   val authUser: Kleisli[OptionT[F, _], Request[F], UserEntity] = Kleisli{request =>
+  private val tokenName = "x-auth"
 
-// }
+  private val authUser: Kleisli[F, Request[F], Either[Error, DomainUser]] = Kleisli { request =>
+    val authHeader = request.headers.get(CIString(tokenName))
+    val tokenUserOpt = authHeader
+      // head on nonemptylist
+      .map(_.head)
+      .filter(token => Jwt.isValid(token.value, config.secret, Seq(JwtAlgorithm.HS256)))
+      .flatMap(validToken => Jwt.decode(validToken.value, config.secret, Seq(JwtAlgorithm.HS256)).toOption)
+      .map(_.content)
+      .flatMap(tokenContent => io.circe.parser.parse(tokenContent).flatMap(_.as[TokenUser]).toOption)
+
+    val user = tokenUserOpt match {
+      case Some(u) => userService.findByEmail(u.email)
+      case None    => None.pure[F]
+    }
+    user.map(_.map(_.domainUser).toRight(new Error("")))
+  }
+
+  val onAuthFailure: AuthedRoutes[Error, F] = Kleisli { (req: AuthedRequest[F, Error]) =>
+    // for any requests' auth failure we return 401
+    req.req match {
+      case _ =>
+        OptionT.pure[F](Response[F](status = Status.Unauthorized))
+    }
+  }
+
+  val middleware: AuthMiddleware[F, DomainUser] = AuthMiddleware(authUser, onAuthFailure)
 
   def login(email: String, password: String): F[JwtToken] = {
     userService.findByEmail(email).flatMap {
