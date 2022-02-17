@@ -8,15 +8,17 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import io.sdev.authority.models.user._
 import io.sdev.common.decoders._
-class UserRoutes[F[_]: Async](userService: UserService[F]) extends Http4sDsl[F] with Routes[F] {
+class UserRoutes[F[_]: Async](userService: UserService[F], authService: AuthService[F])
+    extends Http4sDsl[F]
+    with Routes[F] {
   given EntityDecoder[F, UserCreate] = protoDecoder[F, UserCreate]
   given EntityDecoder[F, AuthorizeUser] = protoDecoder[F, AuthorizeUser]
 
-  val routes: HttpRoutes[F] = openPOSTRoutes
+  val routes: HttpRoutes[F] = openPOSTRoutes <+> authService.middleware(authorizedPostRoutes)
 
   private val openPOSTRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
-      case req @ POST -> Root / "authorize" =>
+      case req @ POST -> Root / "login" =>
         Ok(for {
           authorizeData <- req.as[AuthorizeUser]
         } yield authorizeData.toByteArray)
@@ -26,6 +28,14 @@ class UserRoutes[F[_]: Async](userService: UserService[F]) extends Http4sDsl[F] 
           userToCreate <- req.as[UserCreate]
           userId <- userService.insert(userToCreate.username, userToCreate.email, userToCreate.password)
         } yield UserId(userId.value).toByteArray)
+    }
+  }
+
+  private val authorizedPostRoutes: AuthedRoutes[DomainUser, F] = {
+    AuthedRoutes.of { case req @ POST -> Root / "authorize" as user =>
+      Ok(for {
+        authorizedUser <- AuthorizedUser(user.id.value, user.username, user.email).pure[F]
+      } yield authorizedUser.toByteArray)
     }
   }
 }

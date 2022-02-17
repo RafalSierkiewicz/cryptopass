@@ -6,7 +6,7 @@ libraryDependencies ++= Seq(
   "org.http4s"            %%  "http4s-ember-server"     % http4sVersion,
   "org.http4s"            %%  "http4s-ember-client"     % http4sVersion,
   "org.http4s"            %%  "http4s-dsl"              % http4sVersion,
-  "com.github.jwt-scala"  %%  "jwt"                     % "9.0.3",
+  "com.github.jwt-scala"  %%  "jwt-circe"                % "9.0.3",
   "io.circe"              %%  "circe-generic"           % circeVersion,
   "org.tpolecat"          %%  "doobie-core"             % doobie,
   "org.tpolecat"          %%  "doobie-postgres"         % doobie,

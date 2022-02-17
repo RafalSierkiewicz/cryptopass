@@ -12,7 +12,13 @@ message UserId {
     int32 id = 1;
 }
 
-message AuthorizeUser{
+message AuthorizeUser {
     string email = 1;
     string password = 2;
+}
+
+message AuthorizedUser {
+    int32 id = 1;
+    string username = 2;
+    string email = 3; 
 }

@@ -21,39 +21,33 @@ import scala.concurrent.duration.FiniteDuration
 import java.util.concurrent.TimeUnit
 import org.typelevel.ci.CIString
 import io.sdev.authority.models.DomainUser
+import cats.syntax.validated
+import org.http4s.Header.Raw
+import io.circe.Parser
 
-case class InvalidUsernameOrPassword(email: String) extends NoStackTrace
-
-case class JwtToken(token: String)
-case class TokenUser(username: String, email: String)
 class AuthService[F[_]: Async](userService: UserService[F], config: SecurityConfig) {
   import AuthService._
+
   given Codec[TokenUser] = deriveCodec[TokenUser]
   private val tokenDuration: FiniteDuration = FiniteDuration(10, TimeUnit.DAYS)
-  private val tokenName = "x-auth"
+  private val tokenName = "X-AUTH-TOKEN"
 
-  private val authUser: Kleisli[F, Request[F], Either[Error, DomainUser]] = Kleisli { request =>
-    val authHeader = request.headers.get(CIString(tokenName))
-    val tokenUserOpt = authHeader
-      // head on nonemptylist
-      .map(_.head)
-      .filter(token => Jwt.isValid(token.value, config.secret, Seq(JwtAlgorithm.HS256)))
-      .flatMap(validToken => Jwt.decode(validToken.value, config.secret, Seq(JwtAlgorithm.HS256)).toOption)
-      .map(_.content)
-      .flatMap(tokenContent => io.circe.parser.parse(tokenContent).flatMap(_.as[TokenUser]).toOption)
-
-    val user = tokenUserOpt match {
-      case Some(u) => userService.findByEmail(u.email)
-      case None    => None.pure[F]
-    }
-    user.map(_.map(_.domainUser).toRight(new Error("")))
+  private val authUser: Kleisli[F, Request[F], Either[TokenErrors | AuthorizeErrors, DomainUser]] = Kleisli { request =>
+    val authHeader = request.headers.get(CIString(tokenName)).toOptionT
+    val userEither: EitherT[F, TokenErrors | AuthorizeErrors, UserEntity] = for {
+      token <- authHeader.toRight(MissingHeader)
+      tokenHeader <- getValidTokenHeader(token.head)
+      tokenContent <- decodeTokenHeader(tokenHeader)
+      tokenUser <- parseToken(tokenContent)
+      user <- OptionT(userService.findByEmail(tokenUser.email)).toRightF(UserMissing.pure[F])
+    } yield user
+    userEither.map(_.domainUser).value
   }
 
-  val onAuthFailure: AuthedRoutes[Error, F] = Kleisli { (req: AuthedRequest[F, Error]) =>
-    // for any requests' auth failure we return 401
-    req.req match {
-      case _ =>
-        OptionT.pure[F](Response[F](status = Status.Unauthorized))
+  val onAuthFailure: AuthedRoutes[TokenErrors | AuthorizeErrors, F] = Kleisli { reqContext =>
+    reqContext.context match {
+      case tokenErr: TokenErrors    => OptionT.pure[F](Response[F](status = Status.Forbidden))
+      case authErr: AuthorizeErrors => OptionT.pure[F](Response[F](status = Status.Unauthorized))
     }
   }
 
@@ -63,7 +57,7 @@ class AuthService[F[_]: Async](userService: UserService[F], config: SecurityConf
     userService.findByEmail(email).flatMap {
       case None       => InvalidUsernameOrPassword(email).raiseError[F, JwtToken]
       case Some(user) =>
-        isPasswordValid(user.password, password, user.salt, config.pepper).flatMap {
+        AuthService.isPasswordValid(user.password, password, user.salt, config.pepper).flatMap {
           case false => InvalidUsernameOrPassword(email).raiseError[F, JwtToken]
           case true  =>
             val claim = JwtClaim(
@@ -80,9 +74,37 @@ class AuthService[F[_]: Async](userService: UserService[F], config: SecurityConf
         }
     }
   }
+
+  private def getValidTokenHeader(token: Raw): EitherT[F, TokenErrors, String] =
+    EitherT.cond(Jwt.isValid(token.value, config.secret, Seq(JwtAlgorithm.HS256)), token.value, InvalidToken)
+
+  private def decodeTokenHeader(token: String): EitherT[F, TokenErrors, JwtClaim] =
+    Either
+      .fromTry(Jwt.decode(token, config.secret, Seq(JwtAlgorithm.HS256)))
+      .toEitherT
+      .leftMap(err => ParsingTokenError(err.getMessage))
+
+  private def parseToken(claim: JwtClaim): EitherT[F, TokenErrors, TokenUser] =
+    io.circe.parser
+      .parse(claim.content)
+      .flatMap(_.as[TokenUser])
+      .toEitherT
+      .leftMap(parsingErr => ParsingTokenError(parsingErr.getMessage))
 }
 
 object AuthService {
+  case class InvalidUsernameOrPassword(email: String) extends NoStackTrace
+
+  sealed trait AuthorizeErrors extends NoStackTrace
+  case object UserMissing extends AuthorizeErrors
+
+  sealed trait TokenErrors extends NoStackTrace
+  case object InvalidToken extends TokenErrors
+  case object MissingHeader extends TokenErrors
+  case class ParsingTokenError(msg: String) extends TokenErrors
+
+  case class JwtToken(token: String)
+  case class TokenUser(username: String, email: String)
 
   def isPasswordValid[F[_]: Sync](dbPass: String, reqPass: String, dbSalt: String, configPepper: String): F[Boolean] = {
     hash(reqPass, dbSalt, configPepper).map(pass => dbPass == pass)
