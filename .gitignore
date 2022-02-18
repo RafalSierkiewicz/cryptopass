@@ -5,3 +5,6 @@
 .bloop
 .bsp
 target
+.cache
+.ivy2
+.tmp
