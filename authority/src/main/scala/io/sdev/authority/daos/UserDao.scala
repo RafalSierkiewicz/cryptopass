@@ -29,7 +29,7 @@ object UserDao {
     sql"""SELECT id, username, email, password, salt FROM users WHERE id = ${id.value}""".query[UserEntity]
 
   def findByEmailQ(email: String): Query0[UserEntity] =
-    sql"""SELECT id, username, email, password, salt FROM users WHERE id = $email""".query[UserEntity]
+    sql"""SELECT id, username, email, password, salt FROM users WHERE email = $email""".query[UserEntity]
 
   def insertQ(username: String, password: String, salt: String, email: String): Update0 =
     sql"""INSERT INTO users(username,password,salt,email) values ($username, $password, $salt, $email)""".update

@@ -3,7 +3,7 @@ package io.sdev.authority.routes
 import cats.implicits._
 import io.sdev.authority.services._
 import io.sdev.authority.models._
-import cats.effect.kernel._
+import cats.effect.kernel.Async
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import io.sdev.authority.models.user._
@@ -14,14 +14,15 @@ class UserRoutes[F[_]: Async](userService: UserService[F], authService: AuthServ
   given EntityDecoder[F, UserCreate] = protoDecoder[F, UserCreate]
   given EntityDecoder[F, AuthorizeUser] = protoDecoder[F, AuthorizeUser]
 
-  val routes: HttpRoutes[F] = openPOSTRoutes <+> authService.middleware(authorizedPostRoutes)
+  def routes: HttpRoutes[F] = openPOSTRoutes <+> authService.middleware(authorizedPostRoutes)
 
   private val openPOSTRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
       case req @ POST -> Root / "login" =>
         Ok(for {
           authorizeData <- req.as[AuthorizeUser]
-        } yield authorizeData.toByteArray)
+          token <- authService.login(authorizeData.email, authorizeData.password)
+        } yield token.token)
 
       case req @ POST -> Root =>
         Ok(for {

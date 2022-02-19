@@ -24,6 +24,9 @@ import io.sdev.authority.models.DomainUser
 import cats.syntax.validated
 import org.http4s.Header.Raw
 import io.circe.Parser
+import java.util.Base64
+import java.nio.charset.StandardCharsets
+import org.bouncycastle.util.encoders.Hex
 
 class AuthService[F[_]: Async](userService: UserService[F], config: SecurityConfig) {
   import AuthService._
@@ -113,14 +116,14 @@ object AuthService {
   def getSalt: String = {
     val bytes: Array[Byte] = Array.ofDim(16)
     new SecureRandom().nextBytes(bytes)
-    new String(bytes)
+    new String(Hex.encode(bytes))
   }
 
   def hash[F[_]: Sync](password: String, salt: String, pepper: String): F[String] = {
-    Sync[F].delay {
+    Sync[F].blocking {
       val combined: String = s"$password$salt$pepper"
-      val sha256 = new SHA256.Digest()
-      new String(sha256.digest(combined.getBytes))
+      val sha256 = SHA256.Digest()
+      new String(Hex.encode(sha256.digest(combined.getBytes)))
     }
   }
 }
