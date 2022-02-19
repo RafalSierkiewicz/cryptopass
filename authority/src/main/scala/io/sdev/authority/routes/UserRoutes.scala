@@ -7,6 +7,7 @@ import cats.effect.kernel.Async
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import io.sdev.authority.models.user._
+import io.sdev.authority.models.user.DomainUser
 import io.sdev.common.decoders._
 class UserRoutes[F[_]: Async](userService: UserService[F], authService: AuthService[F])
     extends Http4sDsl[F]
@@ -34,9 +35,7 @@ class UserRoutes[F[_]: Async](userService: UserService[F], authService: AuthServ
 
   private val authorizedPostRoutes: AuthedRoutes[DomainUser, F] = {
     AuthedRoutes.of { case req @ POST -> Root / "authorize" as user =>
-      Ok(for {
-        authorizedUser <- AuthorizedUser(user.id.value, user.username, user.email).pure[F]
-      } yield authorizedUser.toByteArray)
+      Ok(DomainUser(user.id, user.username, user.email).toByteArray.pure[F])
     }
   }
 }
