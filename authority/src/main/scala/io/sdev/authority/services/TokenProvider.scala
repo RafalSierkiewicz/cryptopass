@@ -20,7 +20,7 @@ import cats.effect.kernel.Sync
 
 class TokenProvider[F[_]: Sync](config: SecurityConfig) {
   import TokenProvider._
-  private val tokenDuration: FiniteDuration = FiniteDuration(10, TimeUnit.DAYS)
+  private val tokenDuration: FiniteDuration = FiniteDuration(1, TimeUnit.DAYS)
 
   def encode(user: UserEntity): F[JwtToken] = {
     Sync[F]
@@ -33,9 +33,16 @@ class TokenProvider[F[_]: Sync](config: SecurityConfig) {
   def decode(tokenStr: String): EitherT[F, TokenErrors, DomainUser] = {
     for {
       tokenHeader <- getValidTokenHeader(tokenStr)
-      tokenContent <- decodeTokenHeader(tokenHeader)
-      tokenUser <- parseToken(tokenContent)
+      claim <- decodeTokenHeader(tokenHeader)
+      correctClaim <- EitherT.cond(isNonExpired(claim), claim, TokenExpired)
+      tokenUser <- parseToken(correctClaim)
     } yield tokenUser
+  }
+
+  private def isNonExpired(claim: JwtClaim) = {
+    claim.expiration
+      .map(time => Instant.ofEpochMilli(time))
+      .exists(exp => exp.isAfter(Instant.now))
   }
 
   private def claimFor(user: UserEntity): JwtClaim = {
@@ -68,6 +75,8 @@ object TokenProvider {
   sealed trait TokenErrors extends NoStackTrace
   case object InvalidToken extends TokenErrors
   case object MissingHeader extends TokenErrors
+  case object TokenExpired extends TokenErrors
+
   case class ParsingTokenError(msg: String) extends TokenErrors
 
   case class JwtToken(token: String)

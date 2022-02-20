@@ -10,15 +10,16 @@ class TokenProviderSuite extends munit.CatsEffectSuite {
   val securityConfig = SecurityConfig("pepper", "secret", "io.sdev")
   val provider = new TokenProvider[IO](securityConfig)
   val mockedUser = UserEntity(UserEntity.Id(1), "username", "email", "password", "salt")
-  val tokenStr =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJpby5zZGV2IiwiZXhwIjoxNjQ2MjA5Nzk3Mzc5LCJpYXQiOjE2NDUzNDU3OTczNzksImlkIjoxLCJlbWFpbCI6ImVtYWlsIiwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.RUk4HwjSO_1yBHebDm3B2-C4YYMe_tuV5091BKGO3Kw"
+  val expiredTokenStr =
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJpby5zZGV2IiwiZXhwIjoxNjQ1MzQ3NjU3NzU2LCJpYXQiOjE2NDUzNDc1OTc3NTYsImlkIjoxLCJlbWFpbCI6ImVtYWlsIiwidXNlcm5hbWUiOiJ1c2VybmFtZSJ9.csmFA5o1uipC2PS3FKzBddYJxJE2WuEr-M4DXKTk5F4"
 
   test("should issue token without errors") {
     provider.encode(mockedUser).map(_.token.isEmpty).assertEquals(false)
   }
 
-  test("should decode token without errors") {
-    provider.decode(tokenStr).value.map(_.isRight).assertEquals(true)
+  test("should fail on expired token") {
+    import TokenProvider._
+    provider.decode(expiredTokenStr).value.assertEquals(Left(TokenExpired))
   }
 
   test("should encode and decode token without errors") {
