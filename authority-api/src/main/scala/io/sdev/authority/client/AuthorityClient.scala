@@ -6,15 +6,15 @@ import org.http4s.Uri
 import cats.effect.kernel.Async
 import io.sdev.common.decoders._
 import io.sdev.authority.models.user._
+import io.sdev.authority.models.implicits.domainUserEntityDecoder
 
 class AuthorityClient[F[_]: Async](client: Client[F]) {
-  given EntityDecoder[F, UserId] = protoDecoder[F, UserId]
 
-  def createUser(newUser: UserCreate) = {
+  def authorize(authorizeUser: AuthorizeUser) = {
     val request: Request[F] = Request()
       .withMethod(Method.POST)
-      .withUri(Uri.unsafeFromString(s"http://authority:3001/users"))
-      .withEntity(newUser.toByteArray)
-    client.expect[UserId](request)
+      .withUri(Uri.unsafeFromString(s"http://authority:3001/users/authorize"))
+      .withEntity(authorizeUser.toByteArray)
+    client.expect[DomainUser](request)
   }
 }

@@ -8,7 +8,8 @@ import scala.util.control.NoStackTrace
 import java.time.Instant
 import org.http4s.Header.Raw
 import org.bouncycastle.util.encoders.Hex
-import io.sdev.authority.models.user.{DomainUser, domainUserEncoder, domainUserDecoder}
+import io.sdev.authority.models.user._
+import io.sdev.authority.models.implicits.{domainUserEncoder, domainUserDecoder}
 import scala.util.Try
 import io.sdev.authority.configs.SecurityConfig
 import io.sdev.authority.models.UserEntity
@@ -47,7 +48,7 @@ class TokenProvider[F[_]: Sync](config: SecurityConfig) {
 
   private def claimFor(user: UserEntity): JwtClaim = {
     JwtClaim(
-      content = DomainUser(user.id.value, user.username, user.email).asJson(domainUserEncoder).noSpaces,
+      content = DomainUser(user.id.value, user.username, user.email).asJson.noSpaces,
       issuer = Some(config.issuer),
       issuedAt = Some(Instant.now.toEpochMilli),
       expiration = Some(Instant.now.toEpochMilli + tokenDuration.toMillis)
@@ -66,7 +67,7 @@ class TokenProvider[F[_]: Sync](config: SecurityConfig) {
   private def parseToken(claim: JwtClaim): EitherT[F, TokenErrors, DomainUser] = {
     for {
       json <- parse(claim.content).toEitherT.leftMap(_ => InvalidToken)
-      domainUser <- json.as[DomainUser](domainUserDecoder).toEitherT.leftMap(err => ParsingTokenError(err.getMessage))
+      domainUser <- json.as[DomainUser].toEitherT.leftMap(err => ParsingTokenError(err.getMessage))
     } yield domainUser
   }
 }

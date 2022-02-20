@@ -7,13 +7,11 @@ import cats.effect.kernel.Async
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import io.sdev.authority.models.user._
-import io.sdev.authority.models.user.DomainUser
-import io.sdev.common.decoders._
+import io.sdev.authority.models.implicits._
+import io.sdev.authority.models.implicits.{userCreateDecoder, authorizeDecoder}
 class UserRoutes[F[_]: Async](userService: UserService[F], authService: AuthService[F])
     extends Http4sDsl[F]
     with Routes[F] {
-  given EntityDecoder[F, UserCreate] = protoDecoder[F, UserCreate]
-  given EntityDecoder[F, AuthorizeUser] = protoDecoder[F, AuthorizeUser]
 
   def routes: HttpRoutes[F] = openPOSTRoutes <+> authService.middleware(authorizedPostRoutes)
 
