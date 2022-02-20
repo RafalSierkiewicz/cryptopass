@@ -15,8 +15,10 @@ trait Module[F[_]] {
 class AuthorityModule[F[_]: Async](transactor: Transactor[F], config: AuthorityConfig) extends Module[F] {
 
   lazy val userDao: UserDao = UserDao()
+
+  lazy val tokenProvider: TokenProvider[F] = TokenProvider[F](config.security)
   lazy val userService: UserService[F] = UserService[F](userDao, config.security, transactor)
-  lazy val authService: AuthService[F] = AuthService[F](userService, config.security)
+  lazy val authService: AuthService[F] = AuthService[F](userService, tokenProvider, config.security)
 
   val userRoutes: UserRoutes[F] = UserRoutes[F](userService, authService)
 }

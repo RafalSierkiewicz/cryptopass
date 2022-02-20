@@ -2,9 +2,10 @@ package io.sdev.authority.models
 
 import doobie.util.{Put, Get}
 import io.sdev.common.DbEntity
+import io.sdev.authority.models.user.DomainUser
 
 final case class UserEntity(id: UserEntity.Id, username: String, email: String, password: String, salt: String) {
-  lazy val domainUser = DomainUser(id, username, email)
+  val domainUser = DomainUser(id.value, username, email)
 }
 
 object UserEntity extends DbEntity {
