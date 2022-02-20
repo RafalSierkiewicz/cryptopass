@@ -20,6 +20,7 @@ import io.sdev.common.decoders._
 import doobie.util.transactor.Transactor
 import io.sdev.authority.models.user._
 import io.sdev.authority.services.TokenProvider
+import io.sdev.it.DatabaseMock
 
 class AuthenticationSuiteIt extends DatabaseMock {
   val userDao = UserDao()

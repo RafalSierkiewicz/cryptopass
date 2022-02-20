@@ -1,4 +1,4 @@
-package io.sdev.authority.it
+package io.sdev.it
 
 import org.testcontainers.containers.PostgreSQLContainer
 import cats.effect.IO
