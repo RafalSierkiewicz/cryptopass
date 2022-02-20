@@ -18,12 +18,13 @@ class BlogModule[F[_]: Async](transactor: Transactor[F], client: Client[F]) exte
 
   val authorityClient: AuthorityClient[F] = AuthorityClient[F](client)
 
+  val authService: AuthService[F] = AuthService[F](authorityClient)
   val homeService: HomeService[F] = HomeService[F]()
   val homeRoutes: HomeRoutes[F] = HomeRoutes[F](homeService)
 
   val articleDao: ArticleDao = ArticleDao()
   val articleService: ArticleService[F] = ArticleService[F](articleDao, transactor)
-  val articleRoutes: ArticleRoutes[F] = ArticleRoutes[F](articleService, authorityClient)
+  val articleRoutes: ArticleRoutes[F] = ArticleRoutes[F](articleService, authService)
 }
 
 object BlogModule {

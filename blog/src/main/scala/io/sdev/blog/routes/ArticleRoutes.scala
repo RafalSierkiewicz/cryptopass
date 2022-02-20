@@ -13,12 +13,13 @@ import org.http4s.dsl.Http4sDsl
 import io.sdev.authority.client.AuthorityClient
 import io.circe.Encoder
 import io.circe.Json
+import io.sdev.authority.models.user.DomainUser
 
-class ArticleRoutes[F[_]: Async](articleService: ArticleService[F], authorityClient: AuthorityClient[F])
+class ArticleRoutes[F[_]: Async](articleService: ArticleService[F], authService: AuthService[F])
     extends Http4sDsl[F]
     with Routes[F] {
   import ArticleRoutes._
-  def routes: HttpRoutes[F] = authorizedGETRoutes <+> authorizedPOSTRoutes
+  def routes: HttpRoutes[F] = authorizedGETRoutes <+> authService.middleware(authorizedPOSTRoutes)
 
   private def authorizedGETRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
@@ -33,10 +34,10 @@ class ArticleRoutes[F[_]: Async](articleService: ArticleService[F], authorityCli
     }
   }
 
-  private def authorizedPOSTRoutes: HttpRoutes[F] = {
-    HttpRoutes.of { case req @ POST -> Root =>
+  private def authorizedPOSTRoutes: AuthedRoutes[DomainUser, F] = {
+    AuthedRoutes.of { case ctxReq @ POST -> Root as user =>
       Ok(for {
-        article <- req.as[ArticleCreation]
+        article <- ctxReq.req.as[ArticleCreation]
         id <- articleService.insert(article.title, article.body)
       } yield id)
     }

@@ -10,11 +10,11 @@ import io.sdev.authority.models.implicits.domainUserEntityDecoder
 
 class AuthorityClient[F[_]: Async](client: Client[F]) {
 
-  def authorize(authorizeUser: AuthorizeUser) = {
+  def authorize(token: String) = {
     val request: Request[F] = Request()
       .withMethod(Method.POST)
       .withUri(Uri.unsafeFromString(s"http://authority:3001/users/authorize"))
-      .withEntity(authorizeUser.toByteArray)
+      .withHeaders(Headers(Header("X-AUTH-TOKEN", token)))
     client.expect[DomainUser](request)
   }
 }
