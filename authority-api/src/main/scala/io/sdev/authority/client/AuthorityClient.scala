@@ -8,9 +8,13 @@ import io.sdev.common.decoders._
 import io.sdev.authority.models.user._
 import io.sdev.authority.models.implicits.domainUserEntityDecoder
 
-class AuthorityClient[F[_]: Async](client: Client[F]) {
+trait AuthorityClient[F[_]](client: Client[F]) {
+  def authorize(token: String): F[DomainUser]
+}
 
-  def authorize(token: String) = {
+class AuthorityClientBase[F[_]: Async](client: Client[F]) extends AuthorityClient[F](client) {
+
+  def authorize(token: String): F[DomainUser] = {
     val request: Request[F] = Request()
       .withMethod(Method.POST)
       .withUri(Uri.unsafeFromString(s"http://authority:3001/users/authorize"))

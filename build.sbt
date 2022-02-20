@@ -8,9 +8,15 @@ lazy val commonSettings =
 
 lazy val root = project
   .in(file("."))
+  .configs(ItTest)
   .settings(name := "playground")
   .settings(commonSettings)
   .aggregate(authority, blog, common, integrationTestCommon)
+  .settings(
+    inConfig(ItTest)(Defaults.testTasks),
+    Test / testOptions := Seq(Tests.Filter(unitFiler)),
+    ItTest / testOptions := Seq(Tests.Filter(itFilter))
+  )
 
 lazy val authority = (project in file("authority"))
   .settings(name := "authority")
@@ -34,10 +40,16 @@ lazy val authorityApi = (project in file("authority-api"))
 
 lazy val blog = (project in file("blog"))
   .settings(name := "authority")
+  .configs(ItTest)
   .settings(commonSettings)
   .dependsOn(authorityApi, common)
   .dependsOn(integrationTestCommon % "test->test")
   .settings(libraryDependencies ++= (coreWeb ++ Seq(http4sCirce)))
+  .settings(
+    inConfig(ItTest)(Defaults.testTasks),
+    Test / testOptions := Seq(Tests.Filter(unitFiler)),
+    ItTest / testOptions := Seq(Tests.Filter(itFilter))
+  )
 
 lazy val common = (project in file("common"))
   .settings(name := "common")
@@ -51,7 +63,7 @@ lazy val integrationTestCommon = (project in file("integration-test-common"))
     libraryDependencies ++= (Seq(
       "org.scalameta" %% "munit" % munitVersion,
       "org.typelevel" %% "munit-cats-effect-3" % munitCatsVersion
-    ) ++ doobie ++ Seq(testContainers, flyway))
+    ) ++ doobie ++ http4s ++ Seq(testContainers, flyway))
   )
 
 // format: off

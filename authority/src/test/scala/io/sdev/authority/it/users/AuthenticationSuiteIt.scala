@@ -5,29 +5,26 @@ import io.sdev.authority.it._
 import io.sdev.authority.daos.UserDao
 import io.sdev.authority.services.UserService
 import io.sdev.authority.configs.SecurityConfig
+import io.sdev.authority.routes.UserRoutes
+import io.sdev.authority.services.AuthService
+import io.sdev.authority.models.user._
+import io.sdev.authority.services.TokenProvider
+import io.sdev.authority.models.implicits.{domainUserEntityDecoder, userIdDecoder}
+
+import io.sdev.it.DatabaseMock
+import io.sdev.common.decoders._
 import cats.effect.IO
 import cats.implicits._
 import cats.effect.kernel.Resource
-import io.sdev.authority.routes.UserRoutes
-import io.sdev.authority.services.AuthService
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import io.sdev.authority.models.user.UserCreate
-import io.sdev.authority.models.user.UserId
-import io.sdev.common.decoders._
 import doobie.util.transactor.Transactor
-import io.sdev.authority.models.user._
-import io.sdev.authority.services.TokenProvider
-import io.sdev.it.DatabaseMock
 
 class AuthenticationSuiteIt extends DatabaseMock {
   val userDao = UserDao()
   val securityConfig = SecurityConfig("pepper", "secret", "io.sdev")
-
-  given EntityDecoder[IO, UserId] = protoDecoder[IO, UserId]
-  given EntityDecoder[IO, DomainUser] = protoDecoder[IO, DomainUser]
 
   lazy val service = new UserService[IO](userDao, securityConfig, xa)
   lazy val tokenProvider = new TokenProvider[IO](securityConfig)

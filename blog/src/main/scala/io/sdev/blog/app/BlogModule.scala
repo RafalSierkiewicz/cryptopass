@@ -7,7 +7,7 @@ import doobie.util.transactor.Transactor
 import io.sdev.blog.daos.ArticleDao
 import cats.effect.kernel.Async
 import org.http4s.client.Client
-import io.sdev.authority.client.AuthorityClient
+import io.sdev.authority.client._
 
 trait Module[F[_]] {
   val homeRoutes: Routes[F]
@@ -16,7 +16,7 @@ trait Module[F[_]] {
 
 class BlogModule[F[_]: Async](transactor: Transactor[F], client: Client[F]) extends Module[F] {
 
-  val authorityClient: AuthorityClient[F] = AuthorityClient[F](client)
+  val authorityClient: AuthorityClient[F] = AuthorityClientBase[F](client)
 
   val authService: AuthService[F] = AuthService[F](authorityClient)
   val homeService: HomeService[F] = HomeService[F]()

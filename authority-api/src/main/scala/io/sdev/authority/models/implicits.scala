@@ -16,5 +16,6 @@ object implicits {
   given authorizeDecoder[F[_]: Async]: EntityDecoder[F, AuthorizeUser] = protoDecoder[F, AuthorizeUser]
   given domainUserEntityDecoder[F[_]: Async]: EntityDecoder[F, DomainUser] = protoDecoder[F, DomainUser]
   given userCreateDecoder[F[_]: Async]: EntityDecoder[F, UserCreate] = protoDecoder[F, UserCreate]
+  given userIdDecoder[F[_]: Async]: EntityDecoder[F, UserId] = protoDecoder[F, UserId]
 
 }
