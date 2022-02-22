@@ -54,7 +54,7 @@ lazy val blog = (project in file("blog"))
 lazy val common = (project in file("common"))
   .settings(name := "common")
   .settings(commonSettings)
-  .settings(libraryDependencies ++= Seq(doobieCore, http4sCirce, scalaPb))
+  .settings(libraryDependencies ++= Seq(doobieCore, http4sCirce, scalaPb, cats))
 
 lazy val integrationTestCommon = (project in file("integration-test-common"))
   .settings(name := "integrationTestCommon")
@@ -95,6 +95,7 @@ lazy val munit = Seq(
   "org.scalameta"         %%  "munit"                   % munitVersion             % Test,
   "org.typelevel"         %%  "munit-cats-effect-3"     % munitCatsVersion         % Test
 )
+lazy val cats           = "org.typelevel"         %% "cats-core"                % "2.7.0"
 lazy val scalaPb        = "com.thesamet.scalapb"  %% "scalapb-runtime"          % scalapbVersion
 lazy val doobieCore     = "org.tpolecat"          %%  "doobie-core"             % doobieVersion
 lazy val http4sClient   = "org.http4s"            %%  "http4s-ember-client"     % http4sVersion
