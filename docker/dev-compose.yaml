@@ -1,6 +1,20 @@
 version: '2'
 
 services:
+  ui:
+    image: ui:latest
+    command: ['-l', '-c', 'npm start']
+    volumes:
+      - ../ui/:/usr/src/app/
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - '3000:3000'
+    networks:
+      - blog
+    depends_on:
+      - blog
   blog:
     image: scala-sdev:latest
     user: 1000:1000
@@ -10,10 +24,9 @@ services:
     volumes:
       - ../.ivy2:/home/dev/.ivy2
       - ../.cache:/home/dev/.cache
-      - ~/.npmrc:/home/dev/.npmrc
       - ../:/usr/src/app
     ports:
-      - '3000:3000'
+      - '3001:3000'
     networks:
       - blog
     depends_on:
@@ -27,10 +40,9 @@ services:
     volumes:
       - ../.ivy2:/home/dev/.ivy2
       - ../.cache:/home/dev/.cache
-      - ~/.npmrc:/home/dev/.npmrc
       - ../:/usr/src/app
     ports:
-      - '3001:3001'
+      - '3002:3001'
     networks:
       - blog
     depends_on:
