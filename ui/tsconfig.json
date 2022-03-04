@@ -1,16 +1,19 @@
 {
   "compilerOptions": {
+    "baseUrl": "./src/",
+    "rootDir": "src",
     "target": "es5",
     "lib": [
+      "es6",
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
+    "allowJs": true, 
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",

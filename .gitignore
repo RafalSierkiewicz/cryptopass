@@ -8,7 +8,8 @@ target
 .cache
 .ivy2
 .tmp
-
+project/metals.sbt
+project/project
 
 # dependencies
 ui/node_modules
