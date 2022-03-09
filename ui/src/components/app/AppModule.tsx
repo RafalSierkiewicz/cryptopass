@@ -1,20 +1,21 @@
-import React from 'react';
+import { HomeModule } from 'components';
+import { AppHeader } from 'components/app/AppHeader';
 import logo from 'images/logo.svg';
+import React from 'react';
+import { Col, Container, Row } from 'react-bootstrap';
+import { Route, Routes } from 'react-router';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit s<code>src/App.tsx</code> and sa ve to reload .
-        </p>
-        <a className="App-link a" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class AppRouter extends React.Component {
+  render() {
+    return (
+      <Container fluid>
+        <AppHeader />
+        <Routes>
+          <Route path="/" element={<HomeModule />} />
+        </Routes>
+      </Container>
+    );
+  }
 }
 
-export const AppModule = App;
+export const AppModule = AppRouter;
